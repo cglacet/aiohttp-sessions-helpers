@@ -1,4 +1,4 @@
-# aiohttp-sessions-helpers
+# Automatically add session management to a class
 Some function and classes to help you deal with aiohttp sessions. This is made after this [discussion](https://github.com/aio-libs/aiohttp/pull/1468). 
 
 # TL;DR
@@ -74,7 +74,7 @@ The goal is to help aiohttp users to build classes that will contain sessions ob
 ## Why?
 
 If you want to build class that will make requests using **aiohttp client**, at some point you'll have to deal with sessions.
-The [quickstart guide](https://aiohttp.readthedocs.io/en/stable/client_quickstart.html#make-a-request) has an important note about sessions.
+The [quickstart guide for aiohttp client](https://aiohttp.readthedocs.io/en/stable/client_quickstart.html#make-a-request) has an important note about sessions.
 
 >```python
 >import aiohttp
@@ -98,7 +98,7 @@ The goal is to have a single session attached to a given object, this is where t
 
 ## How?
 
-The module provides an abstract class `AbstractSessionContainer` and a decorator `attach_session` that you'll have to use to attach a session to an existing class.
+The module provides an abstract class `AbstractSessionContainer` and a method decorator `attach_session` that you'll have to use to automatically add session management to an existing class.
 
 Say you have a class `MathRequests` that has a single method `get_square` that returns the square value of the given parameter using an `aiohttp.get` request to the math API service located at http://api.mathjs.org/v4. Here is what your class look like for now:
 
@@ -108,7 +108,7 @@ routes = aiohttp.web.RouteTableDef()
 
 class MathRequests:
     async def get_text(self, url, params):
-         # Remember "making a session for every request is a very bad idea"
+        # Remember "making a session for every request is a very bad idea"
         async with aiohttp.ClientSession() as session:
             async with session.get(url, params=params) as response:
                 return await response.text()
@@ -127,24 +127,30 @@ async def index(request):
 maths_app = aiohttp.web.Application()
 maths_app.add_routes(routes)
 ```
+As `aiohttp` documentation says, this is a bad idea to implement `MathRequests` this way, we need to share a single session for all `get_square` requests.
 
-A simple solution to this would be to store a session within `MathRequests`, which you could initiate in the `__init__` method. Saddly this is not a very clean solution as aiohttp sessions should be instantiated in an asynchronous way. 
+A simple solution to this would be to store a client session object within `MathRequests`, which you could initiate in the `__init__` method. Saddly this is not a very clean solution as aiohttp sessions should be instantiated in a synchronous way (outside the even loop). See [aiohttp#1468](https://github.com/aio-libs/aiohttp/pull/1468) for more information about _creation a session outside of coroutine_.
 
 Here is the final solution using the provided module `asynctools`:
+```python
+import asyncio
+import asynctools # 1) Import
 
-```python 
-import asyncio, aiohttp
-routes = aiohttp.web.RouteTableDef()
-
-class MathRequests(asynctools.AbstractSessionContainer): # Extends the abstract class that handles aiohttp session 
+# 2) Extends the abstract class that will handle the aiohttp session for you: 
+class MathRequests(asynctools.AbstractSessionContainer): 
     def __init__(self):
-        super().__init__(raise_for_status=True) # add any 'aiohttp.ClientSession' parameters here
-    @asynctools.attach_session # This will fill the session argument automatically for you
-    async def get_text(self, url, params, session=None): # Add 'session=None' here
+        # 2') (optional) initilise with any 'aiohttp.ClientSession' argument
+        super().__init__(raise_for_status=True)
+    # 3) This decorator will automatically fill the session argument:
+    @asynctools.attach_session
+    async def get_text(self, url, params, session=None):  # 4) Add the 'session' argument
         async with session.get(url, params=params) as response:
             return await response.text()
     async def get_square(self, value):
         return await self.get_text("http://api.mathjs.org/v4", params={'expr' : '{}^2'.format(value)})
+
+from aiohttp import web
+routes = web.RouteTableDef()
 
 @routes.get('/squares')
 async def index(request):
@@ -153,9 +159,9 @@ async def index(request):
     values = data['values'].split(',')
     async with MathRequests() as maths: # Use the object as a context manager (async with <context_manager> as <name>)
         results = await asyncio.gather(*[ maths.get_square(v) for v in values ])
-    return aiohttp.web.json_response({ 'values':values, 'results':results })
+    return web.json_response({ 'values':values, 'results':results })
     
-maths_app = aiohttp.web.Application()
+maths_app = web.Application()
 maths_app.add_routes(routes)
 ```
 
@@ -170,7 +176,7 @@ async def index(request):
     results = await asyncio.gather(*[ maths.get_square(v) for v in values ])
     return web.json_response({ 'values':values, 'results':results })
 ```
-In this case, no session is attached to the `maths` object, in this case every call to `get_square` will use a different session (which is as bad as it was with the old version of `MathRequests`). What you can do to avoid that is to explicitly open a "math session" which will make all `get_square` calls to use the same session (also, don't forget to close the session when you are done):
+In this case, no session is attached to the `maths` object and every call to `get_square` will use a different session (which is as bad as it was with the old version of `MathRequests`). What you can do to avoid that is to **explicitly open a "math session"** which will make all `get_square` calls to use the same session (also, don't forget to close the session when you are done):
 ```python 
 @routes.get('/maths')
 async def index(request):
