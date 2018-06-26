@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='aiohttp_asynctools',
-    version='0.0.6',
+    version='0.0.7',
     description='Some function and classes to help you deal with aiohttp sessions',
     url='https://github.com/cglacet/aiohttp-sessions-helpers',
     long_description=long_description,

@@ -1,7 +1,7 @@
 import asyncio, functools, aiohttp
 from abc import ABCMeta, abstractmethod
 
-def attach_session(session_object_name=None):
+def attach_named_session(session_object_name=None):
     if session_object_name is None:
         session_object_name = 'session'
     def decorator(method):
@@ -18,6 +18,8 @@ def attach_session(session_object_name=None):
                 return await method(self, *args, **kwargs)
         return method_with_session
     return decorator
+
+attach_session = attach_named_session()
 
 class AbstractSessionContainer(metaclass=ABCMeta):
     @abstractmethod

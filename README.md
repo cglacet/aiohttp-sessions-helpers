@@ -20,8 +20,8 @@ class MathRequests(asynctools.AbstractSessionContainer):
         # 2') (optional) initilise with any 'aiohttp.ClientSession' argument
         super().__init__(raise_for_status=True)
     # 3) This decorator will automatically fill the session argument:
-    @asynctools.attach_session # take an optional parameter: session_object_name="<your_arg_name>"
-    async def get_text(self, url, params, session=None):  # 4) Add the 'session' argument (or, if specified <your_arg_name>=None)
+    @asynctools.attach_session # OR @asynctools.attach_named_session("<your_arg_name>")
+    async def get_text(self, url, params, session=None):  # 4) Add the 'session' argument (or, if specified '<your_arg_name>' argument)
         async with session.get(url, params=params) as response:
             return await response.text()
     async def get_square(self, value):
