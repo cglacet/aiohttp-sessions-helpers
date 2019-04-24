@@ -22,6 +22,7 @@ class Range(helpers.AbstractSessionContainer):
 
     @helpers.attach_session
     async def h(self, session=None):
+        """Documentation"""
         return session
 
 @pytest.mark.asyncio
@@ -50,3 +51,8 @@ async def test_session_attached():
     async with Range() as async_range:
         session = await async_range.h()
     assert isinstance(session, aiohttp.ClientSession)
+
+
+@pytest.mark.asyncio
+async def test_documentation():
+    assert Range.h.__doc__ == "Documentation"

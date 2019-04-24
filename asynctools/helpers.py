@@ -9,18 +9,17 @@ def attach_named_session(session_object_name=None):
 
     def decorator(method):
 
+        @functools.wraps(method)
         def decorated(self, *args, **kwargs):
             kwargs[session_object_name] = self._session
             method_instance = method(self, *args, **kwargs)
             if isinstance(method_instance, types.AsyncGeneratorType):
 
-                @functools.wraps(method)
                 async def inner():
                     async for value in method_instance:
                         yield value
             else:
 
-                @functools.wraps(method)
                 async def inner():
                     return await method_instance
 
