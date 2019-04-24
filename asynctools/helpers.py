@@ -1,28 +1,39 @@
 import asyncio, functools, aiohttp
 from abc import ABCMeta, abstractmethod
+import types
+
 
 def attach_named_session(session_object_name=None):
     if session_object_name is None:
         session_object_name = 'session'
+
     def decorator(method):
-        @functools.wraps(method)
-        async def method_with_session(self, *args, **kwargs):
-            if self._session is None:
-                async with aiohttp.ClientSession() as session:
-                    #print("{} using a one shot session.".format(method.__name__))
-                    kwargs[session_object_name] = session
-                    return await method(self, *args, **kwargs)
+
+        def decorated(self, *args, **kwargs):
+            kwargs[session_object_name] = self._session
+            method_instance = method(self, *args, **kwargs)
+            if isinstance(method_instance, types.AsyncGeneratorType):
+
+                @functools.wraps(method)
+                async def inner():
+                    async for value in method_instance:
+                        yield value
             else:
-                #print("{} using the long lasting session {}.".format(method.__name__, self.session))
-                kwargs[session_object_name] = self._session
-                return await method(self, *args, **kwargs)
-        return method_with_session
+
+                @functools.wraps(method)
+                async def inner():
+                    return await method_instance
+
+            return inner()
+
+        return decorated
+
     return decorator
 
 attach_session = attach_named_session()
 
 class AbstractSessionContainer(metaclass=ABCMeta):
-    @abstractmethod
+    #@abstractmethod
     def __init__(self, *args, **kwargs):
         self._session = None
         self._args = args
