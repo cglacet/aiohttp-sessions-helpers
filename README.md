@@ -1,4 +1,4 @@
-![Travis status](https://travis-ci.com/cglacet/aiohttp-sessions-helpers.svg?branch=master)
+[![Travis status](https://travis-ci.com/cglacet/aiohttp-sessions-helpers.svg?branch=master)](https://travis-ci.com/cglacet/aiohttp-sessions-helpers)
 
 # Automatically add session management to a class
 Some function and classes to help you deal with aiohttp client sessions. This is made after this [discussion](https://github.com/aio-libs/aiohttp/pull/1468). This works for decorating both coroutines and asynchronous generators methods. 
