@@ -1,5 +1,7 @@
+![Travis status](https://travis-ci.com/cglacet/aiohttp-sessions-helpers.svg?branch=master)
+
 # Automatically add session management to a class
-Some function and classes to help you deal with aiohttp client sessions. This is made after this [discussion](https://github.com/aio-libs/aiohttp/pull/1468). This works for decorating both coroutines and asynchronous generators methods.
+Some function and classes to help you deal with aiohttp client sessions. This is made after this [discussion](https://github.com/aio-libs/aiohttp/pull/1468). This works for decorating both coroutines and asynchronous generators methods. 
 
 ## Installation
 
@@ -10,18 +12,24 @@ pip install aiohttp-asynctools
 ## TL;DR
 
 Add an `aiohttp.ClientSession` object to your class in a fast and clean way with the following 4 steps:
+
+1. Import asynctools
+2. Extend asynctools.AbstractSessionContainer
+3. (optional) Cutomize the session instanciation in your `__init__` method.
+4. Decorate asynchronous methods/generators with `@asynctools.attach_session` to attach a `session` argument. 
+
+Here is what it looks like for a simple example using a math API ([http://api.mathjs.org/v4](http://api.mathjs.org/v4)): 
+
 ```python
 import asyncio
-import asynctools # 1) Import
+import asynctools  # 1.
 
-# 2) Extends the abstract class that will handle the aiohttp session for you:
-class MathRequests(asynctools.AbstractSessionContainer):
+class MathRequests(asynctools.AbstractSessionContainer):  # 2.
     def __init__(self):
-        # 2') (optional) initilise with any 'aiohttp.ClientSession' argument
-        super().__init__(raise_for_status=True)
-    # 3) This decorator will automatically fill the session argument:
-    @asynctools.attach_session # OR @asynctools.attach_named_session("<your_arg_name>")
-    async def get_text(self, url, params, session=None):  # 4) Add the 'session' argument (or, if specified '<your_arg_name>' argument)
+        super().__init__(raise_for_status=True)  # 3. (optional)
+
+    @asynctools.attach_session  # 4.
+    async def get_text(self, url, params, session=None):
         async with session.get(url, params=params) as response:
             return await response.text()
     async def get_square(self, value):
@@ -39,7 +47,8 @@ async def index(request):
     tasks = []
     data = request.query
     values = data['values'].split(',')
-    async with MathRequests() as maths: # Use the object as a context manager (async with <context_manager> as <name>)
+    # Use the object as a context manager (async with <context_manager> as <name>)
+    async with MathRequests() as maths:
         results = await asyncio.gather(*[ maths.get_square(v) for v in values ])
     return web.json_response({ 'values':values, 'results':results })
 
