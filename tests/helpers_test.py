@@ -25,6 +25,16 @@ class Range(helpers.AbstractSessionContainer):
         """Documentation"""
         return session
 
+    @helpers.attach_session
+    async def kwargsf(self, session=None, **kwargs):
+        """Documentation"""
+        return session, kwargs
+
+    @helpers.attach_named_session("definitely_not_a_session")
+    async def named_seesion(self, definitely_not_a_session=None):
+        """Documentation"""
+        return definitely_not_a_session
+
 @pytest.mark.asyncio
 async def test_generator():
     x = 4
@@ -50,6 +60,22 @@ async def test_coroutine():
 async def test_session_attached():
     async with Range() as async_range:
         session = await async_range.h()
+    assert isinstance(session, aiohttp.ClientSession)
+
+
+@pytest.mark.asyncio
+async def test_kwargs():
+    kwargs = dict(a=1, b=2, c=3)
+    async with Range() as async_range:
+        session, res_kwargs = await async_range.kwargsf(**kwargs)
+    assert isinstance(session, aiohttp.ClientSession)
+    assert res_kwargs == kwargs
+
+
+@pytest.mark.asyncio
+async def test_named_session_attached():
+    async with Range() as async_range:
+        session = await async_range.named_seesion()
     assert isinstance(session, aiohttp.ClientSession)
 
 
