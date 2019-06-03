@@ -35,6 +35,7 @@ class Range(helpers.AbstractSessionContainer):
         """Documentation"""
         return definitely_not_a_session
 
+
 @pytest.mark.asyncio
 async def test_generator():
     x = 4
@@ -76,6 +77,68 @@ async def test_kwargs():
 async def test_named_session_attached():
     async with Range() as async_range:
         session = await async_range.named_seesion()
+    assert isinstance(session, aiohttp.ClientSession)
+
+
+@pytest.mark.asyncio
+async def test_session_hook():
+    async def test_hook(session):
+        session.test = lambda x: x+1
+        return session
+
+    async_range = Range()
+    async_range.set_session_hook(test_hook)
+
+    async with async_range:
+        session = await async_range.named_seesion()
+    assert isinstance(session, aiohttp.ClientSession)
+    assert session.test(3) == 4
+
+@pytest.mark.asyncio
+async def test_session_hook_class():
+    class RangeB(helpers.AbstractSessionContainer):
+        async def session_hook(self, session):
+            session.test = lambda x: x+1
+            return session
+
+        @helpers.attach_session
+        async def f(self, session=None):
+            return session
+
+    async with RangeB() as async_range:
+        session = await async_range.f()
+
+    assert isinstance(session, aiohttp.ClientSession)
+    assert session.test(3) == 4
+
+
+@pytest.mark.asyncio
+async def test_hooks():
+    on_start_test_value = None
+    on_close_test_value = None
+    expected_value = "hooked"
+
+    async def start_hook(*args, **kwargs):
+        nonlocal on_start_test_value
+        on_start_test_value = expected_value
+
+    async def close_hook(*args, **kwargs):
+        nonlocal on_close_test_value
+        on_close_test_value = expected_value
+
+    async_range = Range()
+    async_range.on_start(start_hook)
+    async_range.on_close(close_hook)
+
+    assert on_start_test_value == None
+    assert on_close_test_value == None
+    async with async_range:
+        session = await async_range.named_seesion()
+        assert on_start_test_value == expected_value
+        assert on_close_test_value == None
+
+    assert on_start_test_value == expected_value
+    assert on_close_test_value == expected_value
     assert isinstance(session, aiohttp.ClientSession)
 
 

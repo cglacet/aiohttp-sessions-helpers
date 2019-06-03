@@ -1,11 +1,11 @@
 import setuptools
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+with open("README.md", "r") as f:
+    long_description = f.read()
 
 setuptools.setup(
     name='aiohttp_asynctools',
-    version='0.1.1',
+    version='0.1.2',
     description='Some function and classes to help you deal with aiohttp sessions',
     url='https://github.com/cglacet/aiohttp-sessions-helpers',
     long_description=long_description,
