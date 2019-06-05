@@ -1,7 +1,7 @@
 [![Travis status](https://travis-ci.com/cglacet/aiohttp-sessions-helpers.svg?branch=master)](https://travis-ci.com/cglacet/aiohttp-sessions-helpers)
 
 # Automatically add session management to a class
-Some function and classes to help you deal with aiohttp client sessions. This is made after this [discussion](https://github.com/aio-libs/aiohttp/pull/1468). This works for decorating both coroutines and asynchronous generators methods. 
+Some function and classes to help you deal with aiohttp client sessions. This is made after this [discussion](https://github.com/aio-libs/aiohttp/pull/1468). This works for decorating both coroutines and asynchronous generators methods.
 
 ## Installation
 
@@ -15,17 +15,17 @@ Automatically attach an `aiohttp.ClientSession` object to your class in a fast a
 
 1. Import `asynctools`
 2. Make your class extend `asynctools.AbstractSessionContainer`
-3. Decorate asynchronous methods/generators with `@asynctools.attach_session` to attach a `session` argument. 
+3. Decorate asynchronous methods/generators with `@asynctools.attach_session` to attach a `session` argument.
 
 Optionaly, you can also cutomize the instanciation of `AbstractSessionContainer` in your `__init__` method.
-Here is what it looks like for a simple example using a [math API](http://api.mathjs.org/v4): 
+Here is what it looks like for a simple example using a [math API](http://api.mathjs.org/v4):
 
 ```python
 import asynctools  # 1.
 
+MATH_API_URL = "http://api.mathjs.org/v4"
+
 class MathRequests(asynctools.AbstractSessionContainer):  # 2.
-    def __init__(self):
-        super().__init__(raise_for_status=True)  # optional
 
     @asynctools.attach_session  # 3.
     async def get_text(self, url, params, session=None):
@@ -33,7 +33,10 @@ class MathRequests(asynctools.AbstractSessionContainer):  # 2.
             return await response.text()
 
     async def get_square(self, value):
-        return await self.get_text("http://api.mathjs.org/v4", params={'expr' : '{}^2'.format(value)})
+        params = {
+            "expr" : f"{value}^2"
+        }
+        return await self.get_text(MATH_API_URL, params=params)
 ```
 
 You are now ready to instantiate a `MathRequests` context manager and start requesting the math service using a single `aiohttp` `session` (the session is hidden from the `MathRequests` user). Here is how you could build a math server using the new class (basically we wrote a wrapper for the Math API and now we expose our own API).
@@ -43,35 +46,34 @@ from aiohttp import web
 routes = web.RouteTableDef()
 
 @routes.get('/squares')
-async def index(request):
-    tasks = []
-    data = request.query
-    values = data['values'].split(',')
-    # Use the object as a context manager (async with <context_manager> as <name>)
+async def squares(request):
+    values = request.query['values'].split(',')
+
     async with MathRequests() as maths:
-        results = await asyncio.gather(*[ maths.get_square(v) for v in values ])
-    return web.json_response({ 'values':values, 'results':results })
+        squares = await asyncio.gather(*(maths.get_square(v) for v in values))
+
+    return {
+        'values': values,
+        'squares': squares,
+    }
 
 maths_app = web.Application()
 maths_app.add_routes(routes)
+
+if __name__ == "__main__":
+    web.run_app(app)
 ```
 
-_Alternatively you can start/close sessions explicitly:_
-```python
-# ...
-    maths.start_session()
-    results = await asyncio.gather(*[ maths.get_square(v) for v in values ])
-    maths.close_session()
-# ...
-```
-
-You can now start your server and test the service (example here with gunicorn):
+Alternatively you can start the server using a web framework:
 ```bash
 gunicorn math_requests:maths_app --bind localhost:8085 --worker-class aiohttp.GunicornWebWorker --reload
 ```
+
+We are now ready to test:
 ```bash
 curl 'http://localhost:8085/squares?values=1,2,3,4,5,6,7,8,9,10'
 ```
+
 Which should output:
 ```json
 {
@@ -79,6 +81,8 @@ Which should output:
   "results": ["1", "4", "9", "16", "25", "36", "49", "64", "81", "100"]
 }
 ```
+
+A more complete example can be found in [example](example).
 
 ## Details and explanation
 
@@ -89,7 +93,7 @@ The goal is to help aiohttp users to build classes that will contain sessions ob
 ### Why?
 
 If you want to build class that will make requests using **aiohttp client**, at some point you'll have to deal with sessions.
-The [quickstart guide for aiohttp client](https://aiohttp.readthedocs.io/en/stable/client_quickstart.html#make-a-request) has an important note about sessions.
+The [quickstart guide for aiohttp client](https://aiohttp.readthedocs.io/en/stable/client_quickstart.html#make-a-request) has an important note about them.
 
 >```python
 >import aiohttp
@@ -109,7 +113,7 @@ The [quickstart guide for aiohttp client](https://aiohttp.readthedocs.io/en/stab
 >
 >A session contains a connection pool inside. Connection reusage and keep-alives (both are on by default) may speed up total performance.
 
-The goal is to have a single session attached to a given object, this is where this module will give you a simple way of achieving this with only 4 (very simple) lines of code.
+The goal is to have a single session attached to a given object, this is what this module offers with only 3 (very simple) lines of code.
 
 ### How?
 
