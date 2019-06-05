@@ -9,35 +9,35 @@ Some function and classes to help you deal with aiohttp client sessions. This is
 pip install aiohttp-asynctools
 ```
 
-## TL;DR
+## Usage
 
-Add an `aiohttp.ClientSession` object to your class in a fast and clean way with the following 4 steps:
+Automatically attach an `aiohttp.ClientSession` object to your class in a fast and clean way with the following 3 steps:
 
-1. Import asynctools
-2. Extend asynctools.AbstractSessionContainer
-3. (optional) Cutomize the session instanciation in your `__init__` method.
-4. Decorate asynchronous methods/generators with `@asynctools.attach_session` to attach a `session` argument. 
+1. Import `asynctools`
+2. Make your class extend `asynctools.AbstractSessionContainer`
+3. Decorate asynchronous methods/generators with `@asynctools.attach_session` to attach a `session` argument. 
 
-Here is what it looks like for a simple example using a math API ([http://api.mathjs.org/v4](http://api.mathjs.org/v4)): 
+Optionaly, you can also cutomize the instanciation of `AbstractSessionContainer` in your `__init__` method.
+Here is what it looks like for a simple example using a [math API](http://api.mathjs.org/v4): 
 
 ```python
-import asyncio
 import asynctools  # 1.
 
 class MathRequests(asynctools.AbstractSessionContainer):  # 2.
     def __init__(self):
-        super().__init__(raise_for_status=True)  # 3. (optional)
+        super().__init__(raise_for_status=True)  # optional
 
-    @asynctools.attach_session  # 4.
+    @asynctools.attach_session  # 3.
     async def get_text(self, url, params, session=None):
         async with session.get(url, params=params) as response:
             return await response.text()
+
     async def get_square(self, value):
         return await self.get_text("http://api.mathjs.org/v4", params={'expr' : '{}^2'.format(value)})
 ```
-Note that the `__init__` method has to be here, if it is empty, just use the `pass` keyword as its content.
 
-You are now ready to instantiate a `MathRequests` context manager and start requesting the math service using a single `aiohttp` `session` (the session is hidden from the `MathRequests` user):
+You are now ready to instantiate a `MathRequests` context manager and start requesting the math service using a single `aiohttp` `session` (the session is hidden from the `MathRequests` user). Here is how you could build a math server using the new class (basically we wrote a wrapper for the Math API and now we expose our own API).
+
 ```python
 from aiohttp import web
 routes = web.RouteTableDef()
