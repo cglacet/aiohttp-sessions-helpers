@@ -25,7 +25,7 @@ def define_routes():
     return routes
 
 
-def start_server():
+def setup_server():
     app = web.Application()
 
     # Add static file serving:
@@ -42,10 +42,13 @@ def start_server():
     app.add_routes(define_routes())
 
     print('Server ready, try it: http://localhost:8080/squares?values=1,2,3,4,5,6,7,8,9,10')
-    web.run_app(app)
+
 
     return app
 
 
+app = setup_server()
+
+
 if __name__ == "__main__":
-    start_server()
+    web.run_app(app)
