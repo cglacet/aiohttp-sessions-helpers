@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
 We are now ready to test:
 ```bash
-curl 'http://localhost:8085/squares?values=1,2,3,4,5,6,7,8,9,10'
+curl 'http://localhost:8080/squares?values=1,2,3,4,5,6,7,8,9,10'
 ```
 
 Which should output:
