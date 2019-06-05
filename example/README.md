@@ -9,14 +9,14 @@ Running this example:
 ```console
 $ python example/maths_server.py
 
-Server ready, try it: http://localhost:8080/squares?values=1,2,3,4,5,6,7,8,9,10
+Server ready, try it: http://localhost:8080/squares?values=1,2,3,4,5,6
 ======== Running on http://0.0.0.0:8080 ========
 (Press CTRL+C to quit)
 ```
 
 Which should render the following: 
 
-<img src="images/web.png">
+<img src="images/web.png" width="600px">
 
 
 [API wrapper]: maths_wrapper.py
