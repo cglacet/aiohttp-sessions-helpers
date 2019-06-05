@@ -143,7 +143,7 @@ maths_app.add_routes(routes)
 ```
 As `aiohttp` documentation says, this is a bad idea to implement `MathRequests` this way, we need to share a single session for all `get_square` requests.
 
-A simple solution to this would be to store a client session object within `MathRequests`, which you could initiate in the `__init__` method. Saddly this is not a very clean solution as aiohttp sessions should be instantiated in a synchronous way (outside the even loop). See [aiohttp#1468](https://github.com/aio-libs/aiohttp/pull/1468) for more information about _creation a session outside of coroutine_.
+A simple solution to this would be to store a client session object within `MathRequests`, which you could initiate in the `__init__` method. Saddly this is not a very clean solution as aiohttp sessions should NOT be instantiated in a synchronous way (outside the even loop). See [aiohttp#1468](https://github.com/aio-libs/aiohttp/pull/1468) for more information about _creation a session outside of coroutine_.
 
 Here is the final solution using the provided module `asynctools`:
 ```python
