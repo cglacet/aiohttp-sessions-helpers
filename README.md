@@ -64,14 +64,9 @@ if __name__ == "__main__":
     web.run_app(app)
 ```
 
-Alternatively you can start the server using a web framework:
-```bash
-gunicorn math_requests:maths_app --bind localhost:8085 --worker-class aiohttp.GunicornWebWorker --reload
-```
-
 We are now ready to test:
 ```bash
-curl 'http://localhost:8085/squares?values=1,2,3,4,5,6,7,8,9,10'
+curl 'http://localhost:8080/squares?values=1,2,3,4,5,6,7,8,9,10'
 ```
 
 Which should output:
