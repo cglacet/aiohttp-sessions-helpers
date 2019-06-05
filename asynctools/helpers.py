@@ -1,5 +1,5 @@
-import asyncio, functools, aiohttp
-from abc import ABCMeta, abstractmethod
+import functools, aiohttp
+from abc import ABCMeta
 import types
 
 
