@@ -32,31 +32,27 @@ def attach_named_session(session_object_name=None):
 attach_session = attach_named_session()
 
 class AbstractSessionContainer(metaclass=ABCMeta):
-    def __init__(self, *args, **kwargs):
-        self._session = None
+    def __init__(self, *args, session=None, **kwargs):
+        self._session = session
         self._args = args
         self._kwargs = kwargs
 
     async def __aenter__(self):
         self._session = await aiohttp.ClientSession(*self._args, **self._kwargs).__aenter__()
         self._session = await self.session_hook(self._session)
-        await self.started(*self._args, **self._kwargs)
         return self
 
     async def __aexit__(self, *args, **kwargs):
         await self._session.__aexit__(*args, **kwargs)
-        return await self.closed(*args, **kwargs)
 
     async def start_session(self, *args, **kwargs):
         self._session = aiohttp.ClientSession(*args, **kwargs)
         self._session = await self.session_hook(self._session)
-        return await self.started(*args, **kwargs)
 
     async def close_session(self, *args, **kwargs):
         if (self._session is not None) and (not self._session.closed):
             await self._session.close()
         self._session = None
-        return await self.closed(*args, **kwargs)
 
     # Hooks, test:
     async def session_hook(self, session):
@@ -90,15 +86,3 @@ class AbstractSessionContainer(metaclass=ABCMeta):
                 session = await async_range.named_seesion()
         """
         self.session_hook = hook
-
-    async def started(self, *args, **kwargs):
-        pass
-
-    def on_start(self, hook):
-        self.started = hook
-
-    async def closed(self, *args, **kwargs):
-        pass
-
-    def on_close(self, hook):
-        self.closed = hook
