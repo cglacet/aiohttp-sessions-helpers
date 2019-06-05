@@ -1,6 +1,10 @@
 import setuptools
+from os import path
+from io import open
 
-with open("README.md", "r") as f:
+here = path.abspath(path.dirname(__file__))
+
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setuptools.setup(
@@ -8,6 +12,10 @@ setuptools.setup(
     version='0.1.2',
     description='Some function and classes to help you deal with aiohttp sessions',
     url='https://github.com/cglacet/aiohttp-sessions-helpers',
+    project_urls={
+        'Bug Reports': 'https://github.com/cglacet/aiohttp-sessions-helpers/issues',
+        'Source': 'https://github.com/cglacet/aiohttp-sessions-helpers/',
+    },
     long_description=long_description,
     long_description_content_type="text/markdown",
     author='Christian Glacet',
@@ -24,9 +32,16 @@ setuptools.setup(
         "pytest",
         "pytest-asyncio",
     ],
+    extras_require={
+        "example": [
+            "aiohttp_jinja2 >= 1.1.1",
+        ]
+    },
     packages=setuptools.find_packages(exclude=("tests",)),
     classifiers=(
+        "Development Status :: 3 - Alpha",
         "Programming Language :: Python :: 3",
+        "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ),

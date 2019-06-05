@@ -1,0 +1,19 @@
+<head>
+    <link rel="stylesheet" type="text/css" href="static/styles.css">
+</head>
+<body>
+    <h1>Here is your table of squares</h1>
+    <div>
+        <table>
+            <tr>
+                <th>Input value</th>
+                <th>Square</th>
+            </tr>
+            {% for in, out in zip(values, squares) %}
+            <tr>
+                <td>{{ in }}</td>
+                <td>{{ out }}</td>
+            </tr>
+            {% endfor %}
+    </div>
+</body>
