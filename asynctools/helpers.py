@@ -33,6 +33,9 @@ attach_session = attach_named_session()
 
 class AbstractSessionContainer(metaclass=ABCMeta):
     def __init__(self, *args, session=None, **kwargs):
+        """ See `aiohttp.ClientSession <https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession>`_
+        documentation for accepted arguments and key word arguments.
+        """
         self._session = session
         self._args = args
         self._kwargs = kwargs
@@ -53,6 +56,35 @@ class AbstractSessionContainer(metaclass=ABCMeta):
         if (self._session is not None) and (not self._session.closed):
             await self._session.close()
         self._session = None
+
+    def post(self, url, **kwargs):
+        """ Takes as input the URL and all keywords arguments that aiohttp.get takes:
+            params - (optional) Dictionary or bytes to be sent in the query
+                  string of the new request
+            data - (optional) Dictionary, bytes, or file-like object to
+                  send in the body of the request
+            json - (optional) Any json compatible python object
+            headers - (optional) Dictionary of HTTP Headers to send with
+                  the request
+            cookies - (optional) Dict object to send with the request
+            auth - (optional) BasicAuth named tuple represent HTTP Basic Auth
+        """
+        return self._session.post(url, **kwargs)
+
+
+    def get(self, url, **kwargs):
+        """ Takes as input the URL and all keywords arguments that aiohttp.get takes:
+            params - (optional) Dictionary or bytes to be sent in the query
+                  string of the new request
+            data - (optional) Dictionary, bytes, or file-like object to
+                  send in the body of the request
+            json - (optional) Any json compatible python object
+            headers - (optional) Dictionary of HTTP Headers to send with
+                  the request
+            cookies - (optional) Dict object to send with the request
+            auth - (optional) BasicAuth named tuple represent HTTP Basic Auth
+        """
+        return self._session.get(url, **kwargs)
 
     # Hooks, test:
     async def session_hook(self, session):

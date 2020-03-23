@@ -9,7 +9,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setuptools.setup(
     name='aiohttp_asynctools',
-    version='0.1.2',
+    version='0.1.3',
     description='Some function and classes to help you deal with aiohttp sessions',
     url='https://github.com/cglacet/aiohttp-sessions-helpers',
     project_urls={

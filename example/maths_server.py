@@ -16,6 +16,7 @@ def define_routes():
 
         async with MathRequests() as maths:
             squares = await asyncio.gather(*(maths.get_square(v) for v in values))
+            squares = await asyncio.gather(*(maths.simpler_get_square(v) for v in values))
 
         return {
             'values': values,
@@ -42,8 +43,6 @@ def setup_server():
     app.add_routes(define_routes())
 
     print('Server ready, try it: http://localhost:8080/squares?values=1,2,3,4,5,6')
-
-
     return app
 
 
