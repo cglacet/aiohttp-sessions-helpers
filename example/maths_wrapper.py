@@ -35,7 +35,7 @@ async def main():
         print(f"Squares of {values} = {squares}")
 
     async with AnotherMathRequests() as maths:
-        squares = await asyncio.gather(*(maths.get_square(v) for v in values))
+        squares = await asyncio.gather(*(maths.simpler_get_square(v) for v in values))
         print(f"Squares of {values} = {squares}")
 
 

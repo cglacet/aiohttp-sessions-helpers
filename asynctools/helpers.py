@@ -1,6 +1,7 @@
 import functools, aiohttp
 from abc import ABCMeta
 import types
+from contextlib import asynccontextmanager
 
 
 def attach_named_session(session_object_name=None):
@@ -58,7 +59,7 @@ class AbstractSessionContainer(metaclass=ABCMeta):
         self._session = None
 
     def post(self, url, **kwargs):
-        """ Takes as input the URL and all keywords arguments that aiohttp.get takes:
+        """ Takes as input the URL and all keywords arguments that aiohttp.post takes:
             params - (optional) Dictionary or bytes to be sent in the query
                   string of the new request
             data - (optional) Dictionary, bytes, or file-like object to
